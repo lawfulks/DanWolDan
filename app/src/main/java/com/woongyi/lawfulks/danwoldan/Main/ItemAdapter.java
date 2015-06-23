@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.woongyi.lawfulks.danwoldan.Monster.MonsterData;
+import com.woongyi.lawfulks.danwoldan.MonsterHunterData.MonsterData;
 import com.woongyi.lawfulks.danwoldan.R;
 
 import java.util.ArrayList;
