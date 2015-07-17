@@ -17,9 +17,11 @@ public class ShapeBitmap {
         Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(output);
         int width = bitmap.getWidth();
+
         if(bitmap.getWidth()>bitmap.getHeight()) {
             width = bitmap.getHeight();
         }
+
         final int color = 0xff424242;
         final Paint paint = new Paint();
         final Rect rect = new Rect(0, 0, width, width);
@@ -38,12 +40,41 @@ public class ShapeBitmap {
     }
 
     public static Bitmap getRoundBitmap(Bitmap bitmap) {
-        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(output);
         int width = bitmap.getWidth();
-        if(bitmap.getWidth()>bitmap.getHeight())
+
+        if(bitmap.getWidth()>bitmap.getHeight()) {
             width = bitmap.getHeight();
+        }
+
+        final int color = 0xff424242;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, width, width);
+        final RectF rectF = new RectF(rect);
+        final float roundPx = width / 18;
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        return output;
+    }
+
+    public static Bitmap getFoursquareRoundBitmap(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+
+        if(bitmap.getWidth()>bitmap.getHeight()) {
+            width = bitmap.getHeight();
+        }
+
+        Bitmap output = Bitmap.createBitmap(width, width, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+
         final int color = 0xff424242;
         final Paint paint = new Paint();
         final Rect rect = new Rect(0, 0, width, width);

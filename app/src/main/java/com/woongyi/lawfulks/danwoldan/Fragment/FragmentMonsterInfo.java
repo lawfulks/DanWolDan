@@ -1,36 +1,44 @@
 package com.woongyi.lawfulks.danwoldan.Fragment;
 
 
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Html;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
-import com.woongyi.lawfulks.danwoldan.MonsterHunterData.MonsterData;
+import com.woongyi.lawfulks.danwoldan.Activity.ActivityMain;
+import com.woongyi.lawfulks.danwoldan.Activity.ActivityMain.OnMonsterQueryListener;
+import com.woongyi.lawfulks.danwoldan.Activity.ActivityRealImageDialog;
+import com.woongyi.lawfulks.danwoldan.AdapterData.MonsterDestroyData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.MonsterInfoData;
 import com.woongyi.lawfulks.danwoldan.R;
-import com.woongyi.lawfulks.danwoldan.Utils.ShapeBitmap;
+import com.woongyi.lawfulks.danwoldan.Utils.AssetFileDescript;
 import com.woongyi.lawfulks.danwoldan.Utils.DBHelper;
 
+import java.io.IOException;
 import java.util.ArrayList;
+
+import static android.widget.LinearLayout.HORIZONTAL;
 
 /**
  * Created by lawfulks on 15. 6. 23..
  */
-public class FragmentMonsterInfo extends Fragment {
+public class FragmentMonsterInfo extends Fragment implements OnMonsterQueryListener {
     private ImageView monsterImgView;
     private ImageView firstPropertiesImgView;
     private ImageView secondPropertiesImgView;
@@ -38,36 +46,64 @@ public class FragmentMonsterInfo extends Fragment {
     private ImageView fourthPropertiesImgView;
     private ImageView fifthPropertiesImgView;
 
+    private TextView nameTxtView;
+    private TextView typeTxtView;
+    private TextView attributeTxtView;
+    private TextView roarTxtView;
+    private TextView windTxtView;
+
     private TextView propertiesTxtView;
     private TextView posionStateTxtView;
     private TextView paralysisStateTxtView;
     private TextView sleepStateTxtView;
+
+    private TextView captureTxtView;
     private TextView trapTxtView;
     private TextView paralysisTrapTxtView;
     private TextView flashBeadTxtView;
     private TextView soundBombTxtView;
     private TextView trapMeatTxtView;
-    private ArrayList<MonsterData> monsterlist;
+    private TextView cutTxtView;
+    private TextView blowTxtView;
+    private TextView bulletTxtView;
+
+    private LinearLayout destroyView;
+    private DBHelper dbHelper;
+    private ArrayList<MonsterInfoData> monsterInfoList;
+    private ArrayList<MonsterDestroyData> monsterDestroyList;
+
+    private int monsterPostion = -1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_monster_info, container, false);
+        rootView.setTag("monster");
 
-        monsterlist = new ArrayList<>();
-        DBHelper dbHelper = new DBHelper(getActivity().getApplicationContext());
-        dbHelper.getMonsterList(monsterlist);
+        monsterInfoList = new ArrayList<>();
+        monsterDestroyList = new ArrayList<>();
 
-        final ArrayList<String> nameList = new ArrayList<>();
-        for (int i = 0; i < monsterlist.size(); i++) {
-            nameList.add(monsterlist.get(i).getName());
-        }
+        dbHelper = DBHelper.getInstance(getActivity());
+        dbHelper.getMonsterInfoList(monsterInfoList);
 
-        final AutoCompleteTextView autoCompTxtView = (AutoCompleteTextView)rootView.findViewById(R.id.autoCompTxtView);
-        final TextView nameTxtView = (TextView)rootView.findViewById(R.id.nameTxtView);
-
+        nameTxtView = (TextView)rootView.findViewById(R.id.nameTxtView);
+        typeTxtView = (TextView)rootView.findViewById(R.id.typeTxtView);
+        attributeTxtView = (TextView)rootView.findViewById(R.id.attributeTxtView);
+        roarTxtView = (TextView)rootView.findViewById(R.id.roarTxtView);
+        windTxtView = (TextView)rootView.findViewById(R.id.windTxtView);
         monsterImgView = (ImageView)rootView.findViewById(R.id.monsterImgView);
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-        monsterImgView.setImageBitmap(ShapeBitmap.getRoundBitmap(bitmap));
+        LinearLayout monsterIconView = (LinearLayout)rootView.findViewById(R.id.monsterIconView);
+        monsterIconView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (monsterPostion != -1) {
+                    int position = monsterInfoList.get(monsterPostion).getNum();
+                    Intent intent = new Intent(getActivity(), ActivityRealImageDialog.class);
+                    intent.putExtra("position", position);
+                    startActivity(intent);
+                }
+            }
+        });
+
         firstPropertiesImgView = (ImageView)rootView.findViewById(R.id.firstPropertiesImgView);
         secondPropertiesImgView = (ImageView)rootView.findViewById(R.id.secondPropertiesImgView);
         thirdPropertiesImgView = (ImageView)rootView.findViewById(R.id.thirdPropertiesImgView);
@@ -79,49 +115,54 @@ public class FragmentMonsterInfo extends Fragment {
         paralysisStateTxtView = (TextView)rootView.findViewById(R.id.paralysisStateTxtView);
         sleepStateTxtView = (TextView)rootView.findViewById(R.id.sleepStateTxtView);
 
+        captureTxtView = (TextView)rootView.findViewById(R.id.captureTxtView);
         trapTxtView = (TextView)rootView.findViewById(R.id.trapTxtView);
         paralysisTrapTxtView = (TextView)rootView.findViewById(R.id.paralysisTrapTxtView);
         flashBeadTxtView = (TextView)rootView.findViewById(R.id.flashBeadTxtView);
         soundBombTxtView = (TextView)rootView.findViewById(R.id.soundBombTxtView);
         trapMeatTxtView = (TextView)rootView.findViewById(R.id.trapMeatTxtView);
+        cutTxtView = (TextView)rootView.findViewById(R.id.cutTxtView);
+        blowTxtView = (TextView)rootView.findViewById(R.id.blowTxtView);
+        bulletTxtView = (TextView)rootView.findViewById(R.id.bulletTxtView);
 
-        Button okBtn = (Button)rootView.findViewById(R.id.okBtn);
-        okBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String result = autoCompTxtView.getText().toString();
-                hideSoftKeyboard(autoCompTxtView);
-                int pos = getMonsterNumber(result);
-
-                if (pos == -1) {
-                    nameTxtView.setText("이름을 잘못 입력하셨습니다.");
-                    initView();
-                } else {
-                    nameTxtView.setText(result);
-                    getMonsterInfo(result);
-                }
-
-                autoCompTxtView.setText("");
-            }
-        });
-
-        ArrayAdapter<String> nameAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_dropdown_item_1line, nameList);
-        autoCompTxtView.setAdapter(nameAdapter);
-        autoCompTxtView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String result = autoCompTxtView.getText().toString();
-                hideSoftKeyboard(autoCompTxtView);
-                getMonsterImage(result);
-                nameTxtView.setText(result);
-                autoCompTxtView.clearListSelection();
-
-                getMonsterInfo(result);
-                autoCompTxtView.setText("");
-            }
-        });
+        destroyView = (LinearLayout)rootView.findViewById(R.id.destroyView);
 
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        ((ActivityMain)activity).setOnMonsterQueryListener(this);
+    }
+
+    @Override
+    public void setOnInputQuery(String query) {
+        int pos = getMonsterNumber(query);
+
+        if (pos == -1) {
+            nameTxtView.setText("이름을 잘못 입력하셨습니다.");
+            initView();
+        } else {
+            nameTxtView.setText(query);
+            getMonsterInfo(query);
+            getMonsterImage(query);
+            getMonsterDestroy(query);
+        }
+    }
+
+    private int getMonsterNumber(String name) {
+        int pos = -1;
+        for (int j = 0; j < monsterInfoList.size(); j++) {
+            if (monsterInfoList.get(j).getName().equals(name)) {
+                monsterPostion = j;
+                pos = j;
+                break;
+            }
+        }
+
+        return pos;
     }
 
     private void getMonsterImage(String name) {
@@ -130,13 +171,14 @@ public class FragmentMonsterInfo extends Fragment {
             return;
         }
 
-        int number = monsterlist.get(position).getNum();
-        String imgName = "img_monster_" + number;
+        int number = monsterInfoList.get(position).getNum();
 
         try {
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), getResource(imgName, getActivity()));
-            monsterImgView.setImageBitmap(ShapeBitmap.getRoundBitmap(bitmap));
-        } catch (PackageManager.NameNotFoundException e) {
+            String imgName = "icon_monster/img_monster_" + number + ".png";
+            AssetFileDescriptor assetFileDescriptor = AssetFileDescript.getAssetFileDescriptor(getActivity(), imgName);
+            Drawable drawable = Drawable.createFromStream(assetFileDescriptor.createInputStream(), null);
+            monsterImgView.setImageDrawable(drawable);
+        } catch (IOException e) {
         }
     }
 
@@ -148,25 +190,48 @@ public class FragmentMonsterInfo extends Fragment {
 
         setProperties(position);
 
-        posionStateTxtView.setText(getEffect(monsterlist.get(position).getPoison()));
-        paralysisStateTxtView.setText(getEffect(monsterlist.get(position).getParalysis()));
-        sleepStateTxtView.setText(getEffect(monsterlist.get(position).getSleep()));
+        MonsterInfoData data = monsterInfoList.get(position);
 
-        trapTxtView.setText(getEffect(monsterlist.get(position).getTrap()));
-        paralysisTrapTxtView.setText(getEffect(monsterlist.get(position).getParalysisTrap()));
-        flashBeadTxtView.setText(getEffect(monsterlist.get(position).getFlashBead()));
-        soundBombTxtView.setText(getEffect(monsterlist.get(position).getSoundBomb()));
-        trapMeatTxtView.setText(getEffect(monsterlist.get(position).getTrapMeat()));
+        String roar = "-";
+        String wind = "-";
+        if (data.getRoar() != null) roar = data.getRoar();
+        if (data.getWindPressure() != null) wind = data.getWindPressure();
+
+        typeTxtView.setText(data.getType());
+        attributeTxtView.setText(data.getAttribute());
+        roarTxtView.setText(roar);
+        windTxtView.setText(wind);
+        posionStateTxtView.setText(getEffect(data.getPoison()));
+        paralysisStateTxtView.setText(getEffect(data.getParalysis()));
+        sleepStateTxtView.setText(getEffect(data.getSleep()));
+
+        captureTxtView.setText(data.getCapture());
+        trapTxtView.setText(getEffect(data.getTrap()));
+        paralysisTrapTxtView.setText(getEffect(data.getParalysisTrap()));
+        flashBeadTxtView.setText(getEffect(data.getFlashBead()));
+        soundBombTxtView.setText(getEffect(data.getSoundBomb()));
+        trapMeatTxtView.setText(getEffect(data.getTrapMeat()));
+        cutTxtView.setText(data.getCut());
+        blowTxtView.setText(data.getBlow());
+        bulletTxtView.setText(data.getBullet());
+
+        if (data.getCut().length() > 7) cutTxtView.setTextSize(13);
+        else cutTxtView.setTextSize(16);
+        if (data.getBlow().length() > 7) blowTxtView.setTextSize(13);
+        else blowTxtView.setTextSize(16);
+        if (data.getBullet().length() > 7) bulletTxtView.setTextSize(13);
+        else bulletTxtView.setTextSize(16);
+
     }
 
     private void setProperties(int position) {
-        String[] properties = monsterlist.get(position).getProperties();
+        String[] properties = monsterInfoList.get(position).getProperties();
 
         setBestPropertiesImgView(properties[0], 0);
 
         int i = 1;
         for (; i < properties.length; i += 2) {
-            if (properties[i].equals("=")) {
+            if (properties[i].equals(" = ")) {
                 setBestPropertiesImgView(properties[i+1], i);
             } else {
                 break;
@@ -193,18 +258,24 @@ public class FragmentMonsterInfo extends Fragment {
         for (; i < properties.length; i++) {
             if (i % 2 == 0) {
                 String color;
+                String koreanProp;
                 if ("Fire".equals(properties[i])) {
                     color = "#FF0000";
+                    koreanProp = "불";
                 } else if ("Water".equals(properties[i])) {
                     color = "#0000FF";
+                    koreanProp = "물";
                 } else if ("Thunder".equals(properties[i])) {
                     color = "#FFD700";
+                    koreanProp = "번개";
                 } else if ("Ice".equals(properties[i])) {
                     color = "#87CEFA";
+                    koreanProp = "얼음";
                 } else {
-                    color = "#2F4F4F";
+                    color = "#228B22";
+                    koreanProp = "용";
                 }
-                propertiesString += "<font color = '" + color + "'>" + properties[i] + "</font> ";
+                propertiesString += "<font color = '" + color + "'>" + koreanProp + "</font> ";
             } else {
                 propertiesString += properties[i] + " ";
             }
@@ -246,18 +317,6 @@ public class FragmentMonsterInfo extends Fragment {
         }
     }
 
-    private int getMonsterNumber(String name) {
-        int pos = -1;
-        for (int j = 0; j < monsterlist.size(); j++) {
-            if (monsterlist.get(j).getName().equals(name)) {
-                pos = j;
-                break;
-            }
-        }
-
-        return pos;
-    }
-
     private String getEffect(int num) {
         String result = "-";
 
@@ -272,6 +331,53 @@ public class FragmentMonsterInfo extends Fragment {
         }
 
         return result;
+    }
+
+    private void getMonsterDestroy(String name) {
+        int position = getMonsterNumber(name);
+        if (position == -1) {
+            return;
+        }
+
+        if (destroyView.getChildCount() > 0) {
+            destroyView.removeAllViews();
+        }
+        int num =  monsterInfoList.get(position).getNum();
+        dbHelper.getMonsterDestroyList(monsterDestroyList, num);
+        DisplayMetrics dm = getActivity().getResources().getDisplayMetrics();
+        int size = Math.round(10 * dm.density);
+
+        for(int i = 0; i < monsterDestroyList.size(); i++) {
+            LinearLayout destroyLinearLayout = new LinearLayout(getActivity());
+            LayoutParams linearLayoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+            linearLayoutParams.setMargins(0, size, 0, size);
+            destroyLinearLayout.setLayoutParams(linearLayoutParams);
+            destroyLinearLayout.setOrientation(HORIZONTAL);
+
+            TextView partTxtView = new TextView(getActivity());
+            LayoutParams partTxtLayoutParams = new LayoutParams(0, LayoutParams.MATCH_PARENT);
+            partTxtLayoutParams.weight = 1;
+            partTxtLayoutParams.gravity = Gravity.LEFT;
+            partTxtLayoutParams.rightMargin = size;
+            partTxtView.setLayoutParams(partTxtLayoutParams);
+            partTxtView.setTextSize(15);
+            partTxtView.setTextColor(Color.WHITE);
+            partTxtView.setText(monsterDestroyList.get(i).getPart());
+            destroyLinearLayout.addView(partTxtView);
+
+
+            TextView contentTxtView = new TextView(getActivity());
+            LayoutParams contentTxtLayoutParams = new LayoutParams(0, LayoutParams.MATCH_PARENT);
+            contentTxtLayoutParams.weight = 2;
+            contentTxtLayoutParams.gravity = Gravity.LEFT;
+            contentTxtView.setLayoutParams(contentTxtLayoutParams);
+            contentTxtView.setTextSize(15);
+            contentTxtView.setTextColor(Color.WHITE);
+            contentTxtView.setText(monsterDestroyList.get(i).getContent());
+            destroyLinearLayout.addView(contentTxtView);
+
+            destroyView.addView(destroyLinearLayout);
+        }
     }
 
     private void initView() {
@@ -290,22 +396,5 @@ public class FragmentMonsterInfo extends Fragment {
         flashBeadTxtView.setText("");
         soundBombTxtView.setText("");
         trapMeatTxtView.setText("");
-    }
-
-    private void hideSoftKeyboard(AutoCompleteTextView autoCompTxtView){
-        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(autoCompTxtView.getWindowToken(), 0);
-    }
-
-    private int getResource(String resName, Context context) throws PackageManager.NameNotFoundException {
-        Context resContext = context.createPackageContext(context.getPackageName(), 0);
-        Resources res = resContext.getResources();
-
-        int id = res.getIdentifier(resName, "mipmap", context.getPackageName());
-
-        if (id == 0) {
-            return R.mipmap.ic_launcher;
-        } else
-            return id;
     }
 }

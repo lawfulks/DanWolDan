@@ -5,9 +5,14 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
-import com.woongyi.lawfulks.danwoldan.MonsterHunterData.MonsterData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.GuildQuestData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.MealInfoData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.MealSkillInfoData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.MonsterDestroyData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.MonsterInfoData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.MonsterListData;
+import com.woongyi.lawfulks.danwoldan.AdapterData.SkillInfoData;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,63 +21,51 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 public class DBHelper {
+	private static DBHelper instance;
 	@SuppressLint("SdCardPath")
 	public static final String PACKAGE_DIR = "/data/data/com.woongyi.lawfulks.danwoldan/";
 	public static final String DATABASE_NAME = "MH_Monster_DB";
-//	public static final String DATABASE_NAME = "API_DB";
-	public final static String TABLE_NAME = "MH_MONSTER_INFO";
+	public final static String MONSTER_INFO_TABLE_NAME = "MH_MONSTER_INFO";
+	public final static String MONSTER_DESTROY_TABLE_NAME = "MH_MONSTER_DESTROY";
+	public final static String SKILL_INFO_TABLE_NAME = "MH_SKILL_INFO";
+	public final static String MEAL_SKILL_INFO_TABLE_NAME = "MH_MEAL_SKILL_INFO";
+	public final static String MEAL_INFO_TABLE_NAME = "MH_MEAL_INFO";
+	public final static String SEARCH_CONDITION_TABLE_NAME = "MH_SEARCH_CONDITION";
+	public final static String GUILDQUEST_CONDITION_TABLE_NAME = "MH_GUILDQUEST_CONDITION";
 	private Context mContext = null;
 	private UtilSQLite sqlLite = null;
 	private Cursor cursor = null;
 
-	public DBHelper(Context context) {
-		mContext = context;
-		sqlLite = new UtilSQLite(mContext, "MH_DB");
-		initialize(mContext);
-
-		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
-		Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
-
-		if (c.moveToFirst()) {
-			for (;;) {
-				Log.d("123", c.getString(0));
-				if (!c.moveToNext()) {
-					break;
-				}
-			}
+	public static DBHelper getInstance(Context context) {
+		if (instance == null) {
+			instance = new DBHelper(context);
 		}
+
+		return instance;
 	}
 
-	public void getMonsterList(ArrayList<MonsterData> list) {
+	private DBHelper(Context context) {
+		mContext = context;
+		sqlLite = new UtilSQLite(mContext, "MH_DB");
+
+		boolean dbFileCheck = PreferenceUtil.instance(mContext.getApplicationContext()).getBooleanPref("dbFileCheck");
+
+		initialize(mContext);
+		PreferenceUtil.instance(mContext.getApplicationContext()).setBooleanPref("dbFileCheck", false);
+	}
+
+	public void getMonsterList(ArrayList<MonsterListData> list) {
 		list.clear();
 		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
-		cursor = db.rawQuery("SELECT * From " + TABLE_NAME, null);
+		cursor = db.rawQuery("SELECT * FROM " + MONSTER_INFO_TABLE_NAME, null);
 		cursor.moveToFirst();
-		MonsterData data;
 
+		MonsterListData data;
 		for (int i=0; i<cursor.getCount(); i++) {
-			data = new MonsterData();
+			data = new MonsterListData();
+
 			data.setNum(cursor.getInt(0));
 			data.setName(cursor.getString(1));
-			data.setType(cursor.getString(2));
-			data.setWindPressure(cursor.getString(3));
-			data.setRoar(cursor.getString(4));
-			data.setCut(cursor.getString(5));
-			data.setBlow(cursor.getString(6));
-			data.setBullet(cursor.getString(7));
-			data.setFire(cursor.getInt(8));
-			data.setWater(cursor.getInt(9));
-			data.setThunder(cursor.getInt(10));
-			data.setIce(cursor.getInt(11));
-			data.setDragon(cursor.getInt(12));
-			data.setPoison(cursor.getInt(13));
-			data.setParalysis(cursor.getInt(14));
-			data.setSleep(cursor.getInt(15));
-			data.setTrap(cursor.getInt(16));
-			data.setParalysisTrap(cursor.getInt(17));
-			data.setFlashBead(cursor.getInt(18));
-			data.setSoundBomb(cursor.getInt(19));
-			data.setTrapMeat(cursor.getInt(20));
 
 			list.add(data);
 			cursor.moveToNext();
@@ -81,12 +74,354 @@ public class DBHelper {
 		cursor.close();
 	}
 
-	public boolean tableCheck() {
-		return sqlLite.isTable(TABLE_NAME);
+	public void getMonsterNameList(ArrayList<String> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+		cursor = db.rawQuery("SELECT * FROM " + MONSTER_INFO_TABLE_NAME, null);
+		cursor.moveToFirst();
+
+		for (int i=0; i<cursor.getCount(); i++) {
+			list.add(cursor.getString(1));
+
+			cursor.moveToNext();
+		}
+
+		cursor.close();
 	}
 
-	public int getRowSize() {
-		return sqlLite.getRowCount(TABLE_NAME);
+	public void getMonsterInfoList(ArrayList<MonsterInfoData> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+		cursor = db.rawQuery("SELECT * FROM " + MONSTER_INFO_TABLE_NAME, null);
+		cursor.moveToFirst();
+		MonsterInfoData data;
+
+		for (int i=0; i<cursor.getCount(); i++) {
+			data = new MonsterInfoData();
+			data.setNum(cursor.getInt(0));
+			data.setName(cursor.getString(1));
+			data.setType(cursor.getString(2));
+			data.setAttribute(cursor.getString(3));
+			data.setWindPressure(cursor.getString(4));
+			data.setRoar(cursor.getString(5));
+			data.setCut(cursor.getString(6));
+			data.setBlow(cursor.getString(7));
+			data.setBullet(cursor.getString(8));
+			data.setFire(cursor.getInt(9));
+			data.setWater(cursor.getInt(10));
+			data.setThunder(cursor.getInt(11));
+			data.setIce(cursor.getInt(12));
+			data.setDragon(cursor.getInt(13));
+			data.setPoison(cursor.getInt(14));
+			data.setParalysis(cursor.getInt(15));
+			data.setSleep(cursor.getInt(16));
+			data.setTrap(cursor.getInt(17));
+			data.setParalysisTrap(cursor.getInt(18));
+			data.setFlashBead(cursor.getInt(19));
+			data.setSoundBomb(cursor.getInt(20));
+			data.setTrapMeat(cursor.getInt(21));
+			data.setCapture(cursor.getString(22));
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getMonsterDestroyList(ArrayList<MonsterDestroyData> list, int infoNum) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+		cursor = db.rawQuery("SELECT * FROM " + MONSTER_DESTROY_TABLE_NAME, null);
+		cursor.moveToFirst();
+		MonsterDestroyData data;
+
+		for (int i=0; i<cursor.getCount(); i++) {
+			int num = cursor.getInt(2);
+			if (num == infoNum) {
+				data = new MonsterDestroyData();
+				data.setNum(cursor.getInt(0));
+				data.setName(cursor.getString(1));
+				data.setInfoNum(cursor.getInt(2));
+				data.setPart(cursor.getString(3));
+				data.setContent(cursor.getString(4));
+
+				list.add(data);
+			}
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getSkillNameList(ArrayList<String> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + SKILL_INFO_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		for (int i = 0; i < cursor.getCount(); i++) {
+			list.add(cursor.getString(1));
+			list.add(cursor.getString(2));
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getSkillInfoList(ArrayList<SkillInfoData> list, String query) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+		int count = 1;
+		SkillInfoData data;
+
+		do {
+			if (query.equals("")) {
+				cursor = db.rawQuery("SELECT * FROM " + SKILL_INFO_TABLE_NAME, null);
+				count = 0;
+			} else if (count == 1) {
+				cursor = db.rawQuery("SELECT * FROM " + SKILL_INFO_TABLE_NAME + " WHERE ActivateSkill = " + "'" + query + "'", null);
+			} else if (count == 2) {
+				cursor = db.rawQuery("SELECT * FROM " + SKILL_INFO_TABLE_NAME + " WHERE Skill = " + "'" + query + "'", null);
+			}
+
+			cursor.moveToFirst();
+
+
+			for (int i = 0; i < cursor.getCount(); i++) {
+				data = new SkillInfoData();
+				data.setNum(cursor.getInt(0));
+				data.setActivateSkill(cursor.getString(1));
+				data.setSkill(cursor.getString(2));
+				data.setRequired(cursor.getString(3));
+				data.setDesc(cursor.getString(4));
+
+				list.add(data);
+				cursor.moveToNext();
+			}
+
+			cursor.close();
+			count++;
+		} while (count == 2);
+	}
+
+	public void getAllSkillList(ArrayList<SkillInfoData> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + SKILL_INFO_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		SkillInfoData data;
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new SkillInfoData();
+			data.setNum(cursor.getInt(0));
+			data.setActivateSkill(cursor.getString(1));
+			data.setSkill(cursor.getString(2));
+			data.setRequired(cursor.getString(3));
+			data.setDesc(cursor.getString(4));
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getMealSkillNameList(ArrayList<String> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + MEAL_SKILL_INFO_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		for (int i = 0; i < cursor.getCount(); i++) {
+			list.add(cursor.getString(1));
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getMealSkillList(ArrayList<MealSkillInfoData> list, String query) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + MEAL_SKILL_INFO_TABLE_NAME + " WHERE ActivateSkill LIKE " + "'" + query + "'", null);
+
+		cursor.moveToFirst();
+
+		MealSkillInfoData data;
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new MealSkillInfoData();
+			data.setActivateSkill(cursor.getString(1));
+			data.setDesc(cursor.getString(2));
+			data.setStuff1(cursor.getString(3));
+			data.setStuff2(cursor.getString(4));
+			data.setHow(cursor.getString(5));
+			data.setSize(cursor.getString(6));
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getMealInfoList(ArrayList<MealInfoData> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + MEAL_INFO_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		MealInfoData data;
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new MealInfoData();
+			data.setNum(cursor.getInt(0));
+			data.setStuff1(cursor.getString(1));
+			data.setStuff2(cursor.getString(2));
+			data.setStirFrying(cursor.getString(3));
+			data.setBoiling(cursor.getString(4));
+			data.setSteaming(cursor.getString(5));
+			data.setFrying(cursor.getString(6));
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getGuildQuestNameList(ArrayList<String> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + GUILDQUEST_CONDITION_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		for (int i = 0; i < cursor.getCount(); i++) {
+			list.add(cursor.getString(1));
+
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+
+		cursor = db.rawQuery("SELECT * FROM " + SEARCH_CONDITION_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		for (int i = 0; i < cursor.getCount(); i++) {
+			list.add(cursor.getString(1));
+
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getSearchingAndGuildQuestCondition(ArrayList<GuildQuestData> list, String query) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + SEARCH_CONDITION_TABLE_NAME + " WHERE Name = " + "'" + query + "'", null);
+
+		cursor.moveToFirst();
+
+		GuildQuestData data;
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new GuildQuestData();
+
+			data.setNum(cursor.getInt(0));
+			data.setGuildQuestName(cursor.getString(1));
+			data.setTarget1(cursor.getString(2));
+			data.setTarget2(cursor.getString(3));
+			data.setType("searching");
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+
+		cursor = db.rawQuery("SELECT * FROM " + GUILDQUEST_CONDITION_TABLE_NAME + " WHERE GuildQuest = " + "'" + query + "'", null);
+		cursor.moveToFirst();
+
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new GuildQuestData();
+			data.setNum(cursor.getInt(0));
+			data.setGuildQuestName(cursor.getString(1));
+			data.setTarget1(cursor.getString(2));
+			data.setTarget2(cursor.getString(3));
+			data.setTarget3(cursor.getString(4));
+			data.setType("guildquest");
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getSearchingAndGuidQuestCondition(ArrayList<GuildQuestData> list) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + SEARCH_CONDITION_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		GuildQuestData data;
+
+		if (cursor.getCount() > 0) {
+			data = new GuildQuestData();
+			data.setType("searchingFirst");
+			list.add(data);
+		}
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new GuildQuestData();
+
+			data.setNum(cursor.getInt(0));
+			data.setGuildQuestName(cursor.getString(1));
+			data.setTarget1(cursor.getString(2));
+			data.setTarget2(cursor.getString(3));
+			data.setType("searching");
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+
+		cursor = db.rawQuery("SELECT * FROM " + GUILDQUEST_CONDITION_TABLE_NAME, null);
+		cursor.moveToFirst();
+
+		if (cursor.getCount() > 0) {
+			data = new GuildQuestData();
+			data.setType("guildquestFirst");
+			list.add(data);
+		}
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new GuildQuestData();
+			data.setNum(cursor.getInt(0));
+			data.setGuildQuestName(cursor.getString(1));
+			data.setTarget1(cursor.getString(2));
+			data.setTarget2(cursor.getString(3));
+			data.setTarget3(cursor.getString(4));
+			data.setType("guildquest");
+
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
 	}
 
 	public boolean isOpen() {
@@ -101,21 +436,19 @@ public class DBHelper {
 		File folder = new File(PACKAGE_DIR + "databases");
 		folder.mkdirs();
 		File outfile = new File(PACKAGE_DIR + "databases/" + DATABASE_NAME);
-		if (outfile.length() <= 0) {
-			AssetManager assetManager = context.getResources().getAssets();
-			try {
-				InputStream is = assetManager.open(DATABASE_NAME, AssetManager.ACCESS_BUFFER);
-				long filesize = is.available();
-				byte [] tempdata = new byte[(int)filesize];
-				is.read(tempdata);
-				is.close();
-				outfile.createNewFile();
-				FileOutputStream fo = new FileOutputStream(outfile);
-				fo.write(tempdata);
-				fo.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		AssetManager assetManager = context.getResources().getAssets();
+
+		try {
+			InputStream is = assetManager.open(DATABASE_NAME, AssetManager.ACCESS_BUFFER);
+			long filesize = is.available();
+			byte [] tempdata = new byte[(int)filesize];
+			is.read(tempdata);
+			is.close();
+			outfile.createNewFile();
+			FileOutputStream fo = new FileOutputStream(outfile);
+			fo.write(tempdata);
+			fo.close();
+		} catch (IOException e) {
 		}
 	}
 }
