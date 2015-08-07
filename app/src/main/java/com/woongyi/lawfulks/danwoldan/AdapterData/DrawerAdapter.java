@@ -29,7 +29,7 @@ public class DrawerAdapter extends ArrayAdapter<String>{
 			int imageInt = 0;
 			if (data.equals("몬스터")) {
 				imageInt = R.mipmap.img_actionbar_type_monster;
-			} else if (data.equals("스킬")) {
+			} else if (data.equals("스킬 & 장식주")) {
 				imageInt = R.mipmap.img_actionbar_type_skill;
 			} else if (data.equals("식사")) {
 				imageInt = R.mipmap.img_actionbar_type_meal;

@@ -32,6 +32,7 @@
                     android:layout_marginRight="7dp"
                     android:imeOptions="actionSearch"
                     android:inputType="textAutoComplete|textAutoCorrect"
+                    android:textColor="@color/white"
                     android:completionThreshold="1"/>
 
 

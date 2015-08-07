@@ -1,5 +1,7 @@
 package com.woongyi.lawfulks.danwoldan.AdapterData;
 
+import java.util.Comparator;
+
 /**
  * Created by lawfulks on 15. 7. 10..
  */
@@ -67,4 +69,22 @@ public class MealSkillInfoData {
     public void setSize(String size) {
         this.size = size;
     }
+
+    @Override
+    public boolean equals(Object object) {
+        boolean sameSame = false;
+        if (object != null && object instanceof MealSkillInfoData){
+            sameSame = this.num == ((MealSkillInfoData) object).num;
+        }
+
+        return sameSame;
+    }
+
+    public static Comparator<MealSkillInfoData> comperator = new Comparator<MealSkillInfoData>() {
+        @Override
+        public int compare(MealSkillInfoData object1, MealSkillInfoData object2) {
+
+            return object1.num > object2.num ? -1 : (object1.num == object2.num ? 0 : 1);
+        }
+    };
 }

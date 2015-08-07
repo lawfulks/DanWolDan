@@ -11,6 +11,11 @@ public class SkillInfoData {
     private String skill;
     private String required;
     private String desc;
+    private String adornName;
+    private String slot;
+    private String rare;
+    private String positive;
+    private String negative;
 
     public int getNum() {
         return num;
@@ -52,6 +57,46 @@ public class SkillInfoData {
         this.desc = desc;
     }
 
+    public String getAdornName() {
+        return adornName;
+    }
+
+    public void setAdornName(String adornName) {
+        this.adornName = adornName;
+    }
+
+    public String getSlot() {
+        return slot;
+    }
+
+    public void setSlot(String slot) {
+        this.slot = slot;
+    }
+
+    public String getRare() {
+        return rare;
+    }
+
+    public void setRare(String rare) {
+        this.rare = rare;
+    }
+
+    public String getPositive() {
+        return positive;
+    }
+
+    public void setPositive(String positive) {
+        this.positive = positive;
+    }
+
+    public String getNegative() {
+        return negative;
+    }
+
+    public void setNegative(String negative) {
+        this.negative = negative;
+    }
+
     @Override
     public boolean equals(Object object) {
         boolean sameSame = false;
@@ -66,7 +111,7 @@ public class SkillInfoData {
         @Override
         public int compare(SkillInfoData object1, SkillInfoData object2) {
 
-            return object1.num > object2.num ? -1 : (object1.num == object2.num ? 0 : 1);
+            return object1.num < object2.num ? -1 : (object1.num == object2.num ? 0 : 1);
         }
     };
 }

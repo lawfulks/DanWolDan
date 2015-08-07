@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class ActivityMain extends ActionBarActivity {
+    private static String[] drawerMenuList = {"몬스터", "스킬 & 장식주", "식사", "길드퀘스트 파생"};
     private OnMonsterQueryListener onMonsterQueryListener;
     private OnSkillQueryListener onSkillQueryListener;
     private OnMealQueryListener onMealQueryListener;
@@ -52,6 +53,7 @@ public class ActivityMain extends ActionBarActivity {
     private ArrayList<Fragment> fragmentList;
 
     private boolean autoTextCheck = true;
+    private boolean drawerCheck = false;
     private int type = 0;
 
     public interface OnMonsterQueryListener {
@@ -135,11 +137,50 @@ public class ActivityMain extends ActionBarActivity {
             }
         });
 
+        final ImageView typeImgView = (ImageView)findViewById(R.id.typeImgView);
+        typeImgView.setImageResource(R.mipmap.img_actionbar_type_monster);
+
         drawerLayout = (DrawerLayout)findViewById(R.id.drawerLayout);
         dtToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_drawer, R.string.close_drawer){
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
+
+                if (drawerCheck) {
+                    if (type == 0) {
+                        typeImgView.setImageResource(R.mipmap.img_actionbar_type_monster);
+                        dbHelper.getMonsterNameList(autoCompleteList);
+                        autoCompleteAdapter.notifyDataSetChanged();
+
+                        setFragmentView("main");
+                    } else if (type == 1) {
+                        typeImgView.setImageResource(R.mipmap.img_actionbar_type_skill);
+                        dbHelper.getSkillNameList(autoCompleteList);
+                        dbHelper.getAdornmentNameList(autoCompleteList);
+                        removeDuplicate(autoCompleteList);
+                        autoCompleteAdapter.notifyDataSetChanged();
+
+                        onSkillQueryListener.setOnInputQuery("");
+                        setFragmentView("skill");
+                    } else if (type == 2) {
+                        typeImgView.setImageResource(R.mipmap.img_actionbar_type_meal);
+                        dbHelper.getMealSkillNameList(autoCompleteList);
+                        autoCompleteAdapter.notifyDataSetChanged();
+
+                        onMealQueryListener.setOnInputQuery("");
+                        setFragmentView("meal");
+                    } else if (type == 3) {
+                        typeImgView.setImageResource(R.mipmap.img_actionbar_type_guildquest);
+                        dbHelper.getGuildQuestNameList(autoCompleteList);
+                        removeDuplicate(autoCompleteList);
+                        autoCompleteAdapter.notifyDataSetChanged();
+
+                        onGuildQuestQueryListener.setOnInputQuery("");
+                        setFragmentView("guildquest");
+                    }
+
+                    drawerCheck = false;
+                }
             }
 
             @Override
@@ -149,55 +190,16 @@ public class ActivityMain extends ActionBarActivity {
         };
         drawerLayout.setDrawerListener(dtToggle);
 
-        final ImageView typeImgView = (ImageView)findViewById(R.id.typeImgView);
-        typeImgView.setImageResource(R.mipmap.img_actionbar_type_monster);
-        typeImgView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
         final ListView drawerMenuListView = (ListView)findViewById(R.id.drawerMenuListView);
-        String[] drawerMenuList = {"몬스터", "스킬", "식사", "길드퀘스트 파생"};
         DrawerAdapter drawerMenuAdapter = new DrawerAdapter(this, drawerMenuList);
         drawerMenuListView.setAdapter(drawerMenuAdapter);
         drawerMenuListView.setDivider(null);
         drawerMenuListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                drawerCheck = true;
                 type = position;
                 drawerLayout.closeDrawers();
-
-                if (position == 0) {
-                    typeImgView.setImageResource(R.mipmap.img_actionbar_type_monster);
-                    dbHelper.getMonsterNameList(autoCompleteList);
-                    autoCompleteAdapter.notifyDataSetChanged();
-
-                    setFragmentView("main");
-                } else if (position == 1) {
-                    typeImgView.setImageResource(R.mipmap.img_actionbar_type_skill);
-                    dbHelper.getSkillNameList(autoCompleteList);
-                    removeDuplicate(autoCompleteList);
-                    autoCompleteAdapter.notifyDataSetChanged();
-
-                    onSkillQueryListener.setOnInputQuery("");
-                    setFragmentView("skill");
-                } else if (position == 2) {
-                    typeImgView.setImageResource(R.mipmap.img_actionbar_type_meal);
-                    dbHelper.getMealSkillNameList(autoCompleteList);
-                    autoCompleteAdapter.notifyDataSetChanged();
-
-                    onMealQueryListener.setOnInputQuery("");
-                    setFragmentView("meal");
-                } else if (position == 3) {
-                    typeImgView.setImageResource(R.mipmap.img_actionbar_type_guildquest);
-                    dbHelper.getGuildQuestNameList(autoCompleteList);
-                    removeDuplicate(autoCompleteList);
-                    autoCompleteAdapter.notifyDataSetChanged();
-
-                    onGuildQuestQueryListener.setOnInputQuery("");
-                    setFragmentView("guildquest");
-                }
             }
         });
 

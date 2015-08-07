@@ -58,7 +58,18 @@ public class FragmentSkillInfo extends Fragment implements OnSkillQueryListener 
         if (query.equals("")) {
             dbHelper.getAllSkillList(skillInfoList);
         } else {
+            skillInfoList.clear();
             dbHelper.getSkillInfoList(skillInfoList, query);
+
+            if (skillInfoList.isEmpty()) {
+                dbHelper.getAdornmentList(skillInfoList, query);
+                if (!skillInfoList.isEmpty()) {
+                    String skillQuery = skillInfoList.get(0).getPositive().substring(0, skillInfoList.get(0).getPositive().indexOf("+"));
+                    dbHelper.getSkillInfoList(skillInfoList, skillQuery);
+                }
+            } else {
+                dbHelper.getAdornmentSkill(skillInfoList, skillInfoList.get(0).getSkill());
+            }
         }
         RemoveDuplicate(skillInfoList);
         OrderLowToHigh(skillInfoList);
@@ -84,24 +95,4 @@ public class FragmentSkillInfo extends Fragment implements OnSkillQueryListener 
     private void OrderLowToHigh(ArrayList<SkillInfoData> list) {
         Collections.sort(list, SkillInfoData.comperator);
     }
-
-//    public class LoadDataTask extends AsyncTask<ListView, Void, Void> {
-//        @Override
-//        protected Void doInBackground(ListView... params) {
-//            final ListView listView = params[0];
-//            getActivity().runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    skillInfoList = new ArrayList<>();
-//                    skillInfoAdapter = new SkillInfoAdapter(getActivity(), skillInfoList);
-//                    listView.setAdapter(skillInfoAdapter);
-//
-//                    dbHelper.getAllSkillList(skillInfoList);
-//                    skillInfoAdapter.notifyDataSetChanged();
-//                }
-//            });
-//
-//            return null;
-//        }
-//    }
 }

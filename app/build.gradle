@@ -8,8 +8,8 @@ android {
         applicationId "com.woongyi.lawfulks.danwoldan"
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 14
-        versionName "1.12"
+        versionCode 17
+        versionName "1.15"
     }
 
     buildTypes {

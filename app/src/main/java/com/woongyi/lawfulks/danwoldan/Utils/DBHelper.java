@@ -32,6 +32,7 @@ public class DBHelper {
 	public final static String MEAL_INFO_TABLE_NAME = "MH_MEAL_INFO";
 	public final static String SEARCH_CONDITION_TABLE_NAME = "MH_SEARCH_CONDITION";
 	public final static String GUILDQUEST_CONDITION_TABLE_NAME = "MH_GUILDQUEST_CONDITION";
+	public final static String ADORNMENT_INFO_TABLE_NAME = "MH_ADORNMENT_INFO";
 	private Context mContext = null;
 	private UtilSQLite sqlLite = null;
 	private Cursor cursor = null;
@@ -50,8 +51,10 @@ public class DBHelper {
 
 		boolean dbFileCheck = PreferenceUtil.instance(mContext.getApplicationContext()).getBooleanPref("dbFileCheck");
 
-		initialize(mContext);
-		PreferenceUtil.instance(mContext.getApplicationContext()).setBooleanPref("dbFileCheck", false);
+		if (!dbFileCheck) {
+			initialize(mContext);
+			PreferenceUtil.instance(mContext.getApplicationContext()).setBooleanPref("dbFileCheck", true);
+		}
 	}
 
 	public void getMonsterList(ArrayList<MonsterListData> list) {
@@ -172,7 +175,6 @@ public class DBHelper {
 	}
 
 	public void getSkillInfoList(ArrayList<SkillInfoData> list, String query) {
-		list.clear();
 		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
 		int count = 1;
 		SkillInfoData data;
@@ -224,6 +226,68 @@ public class DBHelper {
 			data.setRequired(cursor.getString(3));
 			data.setDesc(cursor.getString(4));
 
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getAdornmentNameList(ArrayList<String> list) {
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + ADORNMENT_INFO_TABLE_NAME, null);
+
+		cursor.moveToFirst();
+
+		for (int i = 0; i < cursor.getCount(); i++) {
+			list.add(cursor.getString(1));
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getAdornmentList(ArrayList<SkillInfoData> list, String query) {
+		list.clear();
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + ADORNMENT_INFO_TABLE_NAME + " WHERE Name LIKE " + "'" + query + "'", null);
+
+		cursor.moveToFirst();
+
+		SkillInfoData data;
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new SkillInfoData();
+			data.setNum(cursor.getInt(0) - 100);
+			data.setAdornName(cursor.getString(1));
+			data.setRare(cursor.getString(2));
+			data.setSlot(cursor.getString(3));
+			data.setPositive(cursor.getString(4));
+			data.setNegative(cursor.getString(5));
+			list.add(data);
+			cursor.moveToNext();
+		}
+
+		cursor.close();
+	}
+
+	public void getAdornmentSkill(ArrayList<SkillInfoData> list, String query) {
+		SQLiteDatabase db = mContext.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+
+		cursor = db.rawQuery("SELECT * FROM " + ADORNMENT_INFO_TABLE_NAME + " WHERE Positive LIKE " + "'" + query + "%'", null);
+
+		cursor.moveToFirst();
+
+		SkillInfoData data;
+		for (int i = 0; i < cursor.getCount(); i++) {
+			data = new SkillInfoData();
+			data.setNum(cursor.getInt(0) - 100);
+			data.setAdornName(cursor.getString(1));
+			data.setRare(cursor.getString(2));
+			data.setSlot(cursor.getString(3));
+			data.setPositive(cursor.getString(4));
+			data.setNegative(cursor.getString(5));
 			list.add(data);
 			cursor.moveToNext();
 		}
@@ -343,6 +407,7 @@ public class DBHelper {
 			data.setGuildQuestName(cursor.getString(1));
 			data.setTarget1(cursor.getString(2));
 			data.setTarget2(cursor.getString(3));
+			data.setTarget3(cursor.getString(4));
 			data.setType("searching");
 
 			list.add(data);
@@ -361,6 +426,11 @@ public class DBHelper {
 			data.setTarget1(cursor.getString(2));
 			data.setTarget2(cursor.getString(3));
 			data.setTarget3(cursor.getString(4));
+			data.setTarget4(cursor.getString(5));
+			data.setTarget5(cursor.getString(6));
+			data.setTarget6(cursor.getString(7));
+			data.setTarget7(cursor.getString(8));
+			data.setTarget8(cursor.getString(9));
 			data.setType("guildquest");
 
 			list.add(data);
@@ -380,11 +450,6 @@ public class DBHelper {
 
 		GuildQuestData data;
 
-		if (cursor.getCount() > 0) {
-			data = new GuildQuestData();
-			data.setType("searchingFirst");
-			list.add(data);
-		}
 		for (int i = 0; i < cursor.getCount(); i++) {
 			data = new GuildQuestData();
 
@@ -392,6 +457,7 @@ public class DBHelper {
 			data.setGuildQuestName(cursor.getString(1));
 			data.setTarget1(cursor.getString(2));
 			data.setTarget2(cursor.getString(3));
+			data.setTarget3(cursor.getString(4));
 			data.setType("searching");
 
 			list.add(data);
@@ -403,11 +469,6 @@ public class DBHelper {
 		cursor = db.rawQuery("SELECT * FROM " + GUILDQUEST_CONDITION_TABLE_NAME, null);
 		cursor.moveToFirst();
 
-		if (cursor.getCount() > 0) {
-			data = new GuildQuestData();
-			data.setType("guildquestFirst");
-			list.add(data);
-		}
 		for (int i = 0; i < cursor.getCount(); i++) {
 			data = new GuildQuestData();
 			data.setNum(cursor.getInt(0));
@@ -415,6 +476,11 @@ public class DBHelper {
 			data.setTarget1(cursor.getString(2));
 			data.setTarget2(cursor.getString(3));
 			data.setTarget3(cursor.getString(4));
+			data.setTarget4(cursor.getString(5));
+			data.setTarget5(cursor.getString(6));
+			data.setTarget6(cursor.getString(7));
+			data.setTarget7(cursor.getString(8));
+			data.setTarget8(cursor.getString(9));
 			data.setType("guildquest");
 
 			list.add(data);

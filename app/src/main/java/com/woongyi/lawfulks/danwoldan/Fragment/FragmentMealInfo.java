@@ -62,7 +62,6 @@ public class FragmentMealInfo extends Fragment implements OnMealQueryListener {
             skillListView.setAdapter(mealInfoAdapter);
         } else {
             dbHelper.getMealSkillList(mealSkillInfoList, query);
-
             if (mealSkillInfoList.get(0).getStuff1().contains(",")) {
                 String[] stuff1 = mealSkillInfoList.get(0).getStuff1().split(",");
                 String[] stuff2 = mealSkillInfoList.get(0).getStuff2().split(",");

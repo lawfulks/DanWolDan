@@ -40,25 +40,13 @@ public class ActivityIntro extends Activity {
                         pendingIntent, ServiceDownloader.class);
 
                 if (startResult != DownloaderClientMarshaller.NO_DOWNLOAD_REQUIRED) {
+                    PreferenceUtil.instance(getApplicationContext()).setBooleanPref("dbFileCheck", false);
                     finish();
                     return;
                 }
             } catch (PackageManager.NameNotFoundException e) {
             }
 
-        }
-
-        int currentVersion = checkVersion();
-
-        String appVersion = PreferenceUtil.instance(getApplicationContext()).getStringPref("appVersion");
-
-        if (appVersion == null || currentVersion > Integer.valueOf(appVersion)) {
-            PreferenceUtil.instance(getApplicationContext()).setStringPref("appVersion", String.valueOf(currentVersion));
-            PreferenceUtil.instance(getApplicationContext()).setBooleanPref("dbFileCheck", true);
-        } else if (currentVersion == Integer.valueOf(appVersion)) {
-            PreferenceUtil.instance(getApplicationContext()).setBooleanPref("dbFileCheck", false);
-        } else {
-            PreferenceUtil.instance(getApplicationContext()).setStringPref("appVersion", String.valueOf(currentVersion));
         }
 
         Intent mainIntent = new Intent(this, ActivityMain.class);

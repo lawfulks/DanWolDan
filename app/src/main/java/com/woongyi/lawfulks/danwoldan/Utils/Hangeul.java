@@ -54,8 +54,8 @@ public class Hangeul {
     }
 
     private static boolean matchString(String keyword, String value){
-        value = value.replaceAll(" ", "");
-        keyword = keyword.replaceAll(" ", "");
+        value = value.replaceAll(" ", "").toLowerCase();
+        keyword = keyword.replaceAll(" ", "").toLowerCase();
 
         int seof = value.length() - keyword.length();
         int slen = keyword.length();
